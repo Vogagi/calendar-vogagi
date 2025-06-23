@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendari Cultural Terrassa - Vogaĝi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            transform: scale(1.05);
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .fc {
+            font-family: inherit;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.8rem !important;
+            font-weight: 700 !important;
+            color: #2c3e50 !important;
+        }
+
+        .fc-button {
+            background: linear-gradient(45deg, #667eea, #764ba2) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 8px 16px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .fc-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+        }
+
+        .fc-event {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 2px 6px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .fc-event.music { background: #e74c3c !important; }
+        .fc-event.theater { background: #9b59b6 !important; }
+        .fc-event.exhibition { background: #3498db !important; }
+        .fc-event.history { background: #f39c12 !important; }
+        .fc-event.festival { background: #2ecc71 !important; }
+        .fc-event.market { background: #e67e22 !important; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .modal-header .category {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .event-details {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .event-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .event-detail i {
+            color: #667eea;
+            width: 20px;
+        }
+
+        .event-description {
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+            transform: translateY(-1px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .calendar-container {
+                padding: 15px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .modal-body {
+                padding: 20px;
+            }
+            
+            .filters {
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Calendari Cultural Terrassa</h1>
+            <p>Descobreix el patrimoni i els events culturals de la nostra ciutat</p>
+            <div class="filters">
+                <button class="filter-btn active" data-category="all">Tots</button>
+                <button class="filter-btn" data-category="music">Música</button>
+                <button class="filter-btn" data-category="theater">Teatre</button>
+                <button class="filter-btn" data-category="exhibition">Exposicions</button>
+                <button class="filter-btn" data-category="history">Història</button>
+                <button class="filter-btn" data-category="festival">Festivals</button>
+                <button class="filter-btn" data-category="market">Mercats</button>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle"></h2>
+                <span id="modalCategory" class="category"></span>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" class="event-image" src="" alt="">
+                <div class="event-details">
+                    <div class="event-detail">
+                        <i data-feather="calendar"></i>
+                        <span id="modalDate"></span>
+                    </div>
+                    <div class="event-detail">
+                        <i data-feather="clock"></i>
+                        <span id="modalTime"></span>
+                    </div>
+                    <div class="event-detail">
+                        <i data-feather="map-pin"></i>
+                        <span id="modalLocation"></span>
+                    </div>
+                </div>
+                <div class="event-description">
+                    <p id="modalDescription"></p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="addToRoute">
+                        <i data-feather="plus"></i>
+                        Afegir a la meva ruta
+                    </button>
+                    <button class="btn btn-secondary" id="shareEvent">
+                        <i data-feather="share-2"></i>
+                        Compartir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        Event afegit a la teva ruta!
+    </div>
+
+    <script>
+        // Datos simulados de eventos culturales de Terrassa
+        const culturalEvents = [
+            {
+                id: 1,
+                title: "Concert de Jazz al Teatre Principal",
+                start: "2025-06-28T20:00:00",
+                category: "music",
+                location: "Teatre Principal de Terrassa",
+                description: "Una nit màgica amb els millors músics de jazz de Catalunya. Programa especial dedicat al jazz contemporani amb influències mediterrànies.",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=200&fit=crop",
+                time: "20:00h"
+            },
+            {
+                id: 2,
+                title: "Exposició 'Terrassa Industrial'",
+                start: "2025-06-25",
+                end: "2025-07-15",
+                category: "exhibition",
+                location: "Museu de la Ciència i de la Tècnica",
+                description: "Descobreix la rica història industrial de Terrassa a través d'objectes, fotografies i testimonis de l'època daurada tèxtil.",
+                image: "https://images.unsplash.com/photo-1578662996457-48989de9c96b?w=400&h=200&fit=crop",
+                time: "10:00h - 18:00h"
+            },
+            {
+                id: 3,
+                title: "Mercat Medieval",
+                start: "2025-07-05",
+                end: "2025-07-07",
+                category: "market",
+                location: "Plaça Vella",
+                description: "Viatja al passat medieval de Terrassa amb artesans, espectacles i gastronomia d'època. Activitats familiars i exhibicions històriques.",
+                image: "https://images.unsplash.com/photo-1578662996457-48989de9c96b?w=400&h=200&fit=crop",
+                time: "10:00h - 22:00h"
+            },
+            {
+                id: 4,
+                title: "Teatre: 'Els Pastorets'",
+                start: "2025-07-10T19:30:00",
+                category: "theater",
+                location: "Teatre Alegria",
+                description: "La tradicional representació catalana dels Pastorets amb un enfocament modern i innovador. Ideal per a tota la família.",
+                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop",
+                time: "19:30h"
+            },
+            {
+                id: 5,
+                title: "Ruta de les Esglésies Romàniques",
+                start: "2025-07-12T10:00:00",
+                category: "history",
+                location: "Conjunt Monumental de Sant Pere",
+                description: "Visita guiada pel patrimoni romànic de Terrassa. Descobreix els secrets de Sant Pere, Santa Maria i Sant Miquel.",
+                image: "https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=400&h=200&fit=crop",
+                time: "10:00h"
+            },
+            {
+                id: 6,
+                title: "Festival Terrassa Folk",
+                start: "2025-07-18",
+                end: "2025-07-20",
+                category: "festival",
+                location: "Parc de la Rodriga",
+                description: "Tres dies de música folk amb artistes locals i internacionals. Tallers, gastronomia i activitats per a tota la família.",
+                image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=200&fit=crop",
+                time: "17:00h - 00:00h"
+            },
+            {
+                id: 7,
+                title: "Concert d'Estela Zatania",
+                start: "2025-07-22T21:00:00",
+                category: "music",
+                location: "Castell-Cartoixa de Vallparadís",
+                description: "Nit de flamenc sota les estrelles en un dels espais més emblemàtics de Terrassa. Espectacle íntim i emotiu.",
+                image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&h=200&fit=crop",
+                time: "21:00h"
+            },
+            {
+                id: 8,
+                title: "Exposició 'Modernisme a Terrassa'",
+                start: "2025-07-25",
+                end: "2025-08-15",
+                category: "exhibition",
+                location: "Casa Alegre de Sagrera",
+                description: "Recorregut pel llegat modernista de la ciutat amb peces úniques i documents històrics inèdits.",
+                image: "https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=400&h=200&fit=crop",
+                time: "10:00h - 14:00h, 16:00h - 19:00h"
+            }
+        ];
+
+        let calendar;
+        let currentEvents = [...culturalEvents];
+        let myRoute = JSON.parse(localStorage.getItem('terrassaRoute') || '[]');
+
+        // Inicializar calendario
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ca',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                events: currentEvents,
+                eventClick: function(info) {
+                    openEventModal(info.event.extendedProps.eventData || findEventById(info.event.id));
+                },
+                eventClassNames: function(arg) {
+                    return [arg.event.extendedProps.category || 'music'];
+                },
+                height: 'auto',
+                eventDisplay: 'block',
+                dayMaxEvents: 3,
+                moreLinkClick: 'popover'
+            });
+            
+            calendar.render();
+            
+            // Inicializar iconos
+            feather.replace();
+            
+            // Event listeners
+            setupEventListeners();
+        });
+
+        function findEventById(id) {
+            return culturalEvents.find(event => event.id == id);
+        }
+
+        function setupEventListeners() {
+            // Filtros
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterEvents(this.dataset.category);
+                });
+            });
+
+            // Modal
+            const modal = document.getElementById('eventModal');
+            const closeBtn = document.getElementsByClassName('close')[0];
+            
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            }
+            
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            // Añadir a ruta
+            document.getElementById('addToRoute').addEventListener('click', function() {
+                const eventId = this.dataset.eventId;
+                const event = findEventById(eventId);
+                
+                if (event && !myRoute.find(e => e.id == eventId)) {
+                    myRoute.push(event);
+                    localStorage.setItem('terrassaRoute', JSON.stringify(myRoute));
+                    showToast('Event afegit a la teva ruta!');
+                }
+                
+                document.getElementById('eventModal').style.display = 'none';
+            });
+
+            // Compartir evento
+            document.getElementById('shareEvent').addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: document.getElementById('modalTitle').textContent,
+                        text: document.getElementById('modalDescription').textContent,
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback para navegadores que no soportan Web Share API
+                    navigator.clipboard.writeText(window.location.href);
+                    showToast('Enllaç copiat al portapapers!');
+                }
+            });
+        }
+
+        function filterEvents(category) {
+            if (category === 'all') {
+                currentEvents = [...culturalEvents];
+            } else {
+                currentEvents = culturalEvents.filter(event => event.category === category);
+            }
+            
+            calendar.removeAllEvents();
+            calendar.addEventSource(currentEvents);
+        }
+
+        function openEventModal(event) {
+            const modal = document.getElementById('eventModal');
+            
+            document.getElementById('modalTitle').textContent = event.title;
+            document.getElementById('modalCategory').textContent = getCategoryName(event.category);
+            document.getElementById('modalDate').textContent = formatDate(event.start);
+            document.getElementById('modalTime').textContent = event.time;
+            document.getElementById('modalLocation').textContent = event.location;
+            document.getElementById('modalDescription').textContent = event.description;
+            document.getElementById('modalImage').src = event.image;
+            document.getElementById('addToRoute').dataset.eventId = event.id;
+            
+            modal.style.display = 'block';
+            feather.replace();
+        }
+
+        function getCategoryName(category) {
+            const categories = {
+                music: 'Música',
+                theater: 'Teatre',
+                exhibition: 'Exposició',
+                history: 'Història',
+                festival: 'Festival',
+                market: 'Mercat'
+            };
+            return categories[category] || 'Event';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ca-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
